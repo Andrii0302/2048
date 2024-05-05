@@ -1,11 +1,15 @@
 from flask import Flask, request, jsonify
 import the_2048
-
+from flask_cors import CORS
 app = Flask(__name__)
+CORS(app)
 
-# Initialize the game state
 matrix = the_2048.start_game()
 
+
+def restart_game():
+    global matrix
+    matrix = the_2048.start_game()
 @app.route("/", methods=["GET", "POST"])
 def main():
     global matrix
@@ -27,10 +31,12 @@ def main():
         status = the_2048.current_state(matrix)
         response = {"matrix": matrix, "status": status}
         
-        if status != 'Not over':
+        if status == 'LOST':
             response["message"] = "You lost!"
+            restart_game()
         elif status == 'You won!':
             response["message"] = "You won!"
+            restart_game()
         else:
             the_2048.add_two(matrix)
             
@@ -38,5 +44,7 @@ def main():
     
     return jsonify(matrix)
 
+
+
 if __name__ =='__main__':
-    app.run(debug=True, port=5500)
+    app.run(debug=True, host='127.0.0.1', port=5000)
